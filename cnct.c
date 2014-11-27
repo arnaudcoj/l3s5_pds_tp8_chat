@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "config.h"
 #include "tools.h"
@@ -17,7 +19,7 @@
 
 /* Gestion des sockets */
 static int sockets[MAX_CONNECTION]; /* tableau initialisé a zero */
-
+void assertError(int i);
 static void
 add_socket(int fd)
 {
@@ -83,6 +85,12 @@ repeater(int sckt)
     }
 }
 
+void* p_repeater(void * arg)
+{
+  repeater(*((int*) arg));
+  return arg;
+}
+
 /* Création d'un client */
 /* Version stupide. Pas de creation de thread,
    Le serveur ne peut plus accepter de connexion car il gère
@@ -91,10 +99,27 @@ repeater(int sckt)
 int
 manage_cnct(int fd)
 {
-    pgrs_in();
+  pthread_t thread;
+  int status;
+  pgrs_in();  
 
-    repeater(fd);
+  status = pthread_create(&thread, NULL, p_repeater, (void*) &fd);
+  assertError(status);
 
-    pgrs_out();
-    return 0;
+  status = pthread_detach(thread);
+  pgrs_out();
+  return 0;
+}
+
+void assertError(int i){
+  switch(i){
+  case EAGAIN : printf("Ressources insuffisantes pour créer un nouveau  thread\n");
+    exit(EXIT_FAILURE);
+  case EINVAL : printf("Paramètres invalides dans attr.\n"); 
+    exit(EXIT_FAILURE);
+  case EPERM : printf("Permissions  insuffisantes pour définir la politique d'ordonnancement et les paramètres spécifiés dans attr.\n");
+    exit(EXIT_FAILURE);
+  default :;
+  }
+  return ;
 }

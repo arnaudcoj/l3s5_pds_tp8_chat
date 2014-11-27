@@ -1,4 +1,4 @@
-CC      = gcc
+CC      = gcc -pthread
 CFLAGS  = -Wall -Werror -ansi -pedantic
 CFLAGS += -D_XOPEN_SOURCE=500
 CFLAGS += -DDEBUG
@@ -20,7 +20,7 @@ mtcs : $(OBJECTS)
 ###------------------------------------------------------------
 # thanks to 'make depend'
 cnct.o: cnct.c config.h tools.h cnct.h
-mtcs.o: mtcs.c tools.h config.h cnct.h
+mtcs.o: mtcs.c tools.h config.h cnct.h 
 tools.o: tools.c tools.h
 
 ###------------------------------
