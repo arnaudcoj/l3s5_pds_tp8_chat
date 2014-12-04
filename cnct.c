@@ -87,7 +87,7 @@ repeater(int sckt)
 
 void* p_repeater(void * arg)
 {
-  repeater(*((int*) arg));
+  repeater((int) arg);
   return arg;
 }
 
@@ -103,7 +103,7 @@ manage_cnct(int fd)
   int status;
   pgrs_in();  
 
-  status = pthread_create(&thread, NULL, p_repeater, (void*) &fd);
+  status = pthread_create(&thread, NULL, p_repeater, (void*) fd);
   assertError(status);
 
   status = pthread_detach(thread);

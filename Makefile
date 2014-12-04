@@ -1,5 +1,5 @@
 CC      = gcc -pthread
-CFLAGS  = -Wall -Werror -ansi -pedantic
+CFLAGS  = -Wall -ansi -pedantic
 CFLAGS += -D_XOPEN_SOURCE=500
 CFLAGS += -DDEBUG
 CFLAGS += -g
