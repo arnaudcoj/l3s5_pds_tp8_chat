@@ -17,39 +17,46 @@
 #include "tools.h"
 #include "cnct.h"
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; 
+
 /* Gestion des sockets */
 static int sockets[MAX_CONNECTION]; /* tableau initialisé a zero */
 void assertError(int i);
 static void
 add_socket(int fd)
 {
-    int i;
+  int i;
+  pthread_mutex_lock(&mutex);
 
-    pgrs_in();
-    for (i=0; i<MAX_CONNECTION; i++) {
-        if (sockets[i] == 0) {
-            sockets[i] = fd;
-            break;
-        }
+  pgrs_in();
+  for (i=0; i<MAX_CONNECTION; i++) {
+    if (sockets[i] == 0) {
+      sockets[i] = fd;
+      break;
     }
-    assert(i!=MAX_CONNECTION);
-    pgrs_out();
+  }
+  pthread_mutex_unlock(&mutex);
+  assert(i!=MAX_CONNECTION);
+  pgrs_out();
+  
 }
 
 static void
 del_socket(int fd)
 {
-    int i;
-
-    pgrs_in();
-    for (i=0; i<MAX_CONNECTION; i++) {
-        if (sockets[i] == fd) {
-            sockets[i] = 0;
-            break;
-        }
+  int i;
+  pthread_mutex_lock(&mutex);
+  
+  pgrs_in();
+  for (i=0; i<MAX_CONNECTION; i++) {
+    if (sockets[i] == fd) {
+      sockets[i] = 0;
+      break;
     }
-    assert(i!=MAX_CONNECTION);
-    pgrs_out();
+  }
+  pthread_mutex_unlock(&mutex);
+  assert(i!=MAX_CONNECTION);
+  pgrs_out();
 }
 
 /* Un client  */
