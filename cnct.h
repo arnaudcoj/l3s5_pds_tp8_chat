@@ -16,4 +16,6 @@
 */
 extern int manage_cnct(int fd);
 
+extern struct stats stats;
+
 #endif

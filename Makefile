@@ -5,7 +5,7 @@ CFLAGS += -DDEBUG
 CFLAGS += -g
 
 BINARIES = 	mtcs
-OBJECTS = 	mtcs.o tools.o cnct.o
+OBJECTS = 	mtcs.o tools.o cnct.o stat.o
 
 all : $(BINARIES) $(OBJECTS)
 
@@ -20,8 +20,9 @@ mtcs : $(OBJECTS)
 ###------------------------------------------------------------
 # thanks to 'make depend'
 cnct.o: cnct.c config.h tools.h cnct.h
-mtcs.o: mtcs.c tools.h config.h cnct.h 
+mtcs.o: mtcs.c tools.h config.h cnct.h stat.h
 tools.o: tools.c tools.h
+stat.o: stat.c
 
 ###------------------------------
 ### Misc.

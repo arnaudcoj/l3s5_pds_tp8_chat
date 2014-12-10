@@ -13,15 +13,19 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include "stat.h"
 #include "config.h"
 #include "tools.h"
 #include "cnct.h"
+
+struct stats stats = { 0, 0, 0, 0, 0, 0 };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; 
 
 /* Gestion des sockets */
 static int sockets[MAX_CONNECTION]; /* tableau initialisé a zero */
 void assertError(int i);
+
 static void
 add_socket(int fd)
 {
@@ -37,6 +41,8 @@ add_socket(int fd)
   }
   pthread_mutex_unlock(&mutex);
   assert(i!=MAX_CONNECTION);
+
+    add_nb_clients(&stats, 1);
   pgrs_out();
   
 }
@@ -56,6 +62,7 @@ del_socket(int fd)
   }
   pthread_mutex_unlock(&mutex);
   assert(i!=MAX_CONNECTION);
+    add_nb_clients(&stats, -1);
   pgrs_out();
 }
 
@@ -76,8 +83,10 @@ repeater(int sckt)
     while (1) {
         pgrs("attente read");
         nbc = read(sckt, buf, MAX_BUFFER);
+	add_l_recues(&stats, 1);
         if (nbc <= 0) {
             pgrs("fin lecture client");
+
             pgrs("desenregistrement d'une socket");
             del_socket(sckt);
             close(sckt);
@@ -86,8 +95,10 @@ repeater(int sckt)
         }
         pgrs("boucle ecriture");
         for(i=0; i<MAX_CONNECTION; i++)
-            if (sockets[i])
-                write(sockets[i], buf, nbc);
+	  if (sockets[i]) {
+	    write(sockets[i], buf, nbc);
+	    add_l_envoyees(&stats, 1);
+	  }
         pgrs("fin boucle ecriture");
     }
 }
@@ -99,10 +110,6 @@ void* p_repeater(void * arg)
 }
 
 /* Création d'un client */
-/* Version stupide. Pas de creation de thread,
-   Le serveur ne peut plus accepter de connexion car il gère
-   l'interaction avec le premier client.
-*/
 int
 manage_cnct(int fd)
 {

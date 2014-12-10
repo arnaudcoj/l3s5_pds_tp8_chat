@@ -15,9 +15,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <signal.h>
+
 #include "tools.h"
 #include "config.h"
 #include "cnct.h"
+#include "stat.h"
+
 
 static void
 usage()
@@ -27,6 +31,11 @@ usage()
     printf("   -v   print additional diagnostic information\n");
 
     exit(EXIT_FAILURE);
+}
+
+void sigusr1_handler(int sig) {
+  print_stats(&stats);/*TODO*/
+  return;
 }
 
 /* Retourne une socket d'écoute sur le port passé en argument
@@ -118,6 +127,7 @@ create_cnct(int skfd)
         return -1;
     }
 
+
     pgrs_out();
     return 0;
 }
@@ -127,8 +137,14 @@ main(int argc, char *argv[])
 {
     int listen;
     int port = DEFAULT_PORT;
-
+    struct sigaction sa;
     char c;
+
+    sa.sa_handler = &sigusr1_handler;
+    sa.sa_flags = SA_RESTART;
+    sigemptyset(&sa.sa_mask);
+
+    sigaction(SIGUSR1, &sa, NULL);
 
     /* Parse the command line */
     while ((c = getopt(argc, argv, "hv")) != EOF) {
