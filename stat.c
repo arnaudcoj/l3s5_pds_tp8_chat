@@ -77,14 +77,16 @@ void add_max_clients(struct stats* stats, int to_add) {
 
 void add_l_max_recues(struct stats* stats, int to_add) {
   pthread_mutex_lock(&mutex_stats);
-  stats->l_max_recues += to_add;
+  if(to_add > stats->l_max_recues)
+    stats->l_max_recues = to_add;
   pthread_mutex_unlock(&mutex_stats);
   return;
 }
 
 void add_l_max_envoyees(struct stats* stats, int to_add) {
   pthread_mutex_lock(&mutex_stats);
-  stats->l_max_envoyees += to_add;
+  if(to_add > stats->l_max_envoyees)
+    stats->l_max_envoyees = to_add;
   pthread_mutex_unlock(&mutex_stats);
   return;
 }

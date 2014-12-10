@@ -24,6 +24,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Gestion des sockets */
 static int sockets[MAX_CONNECTION]; /* tableau initialisé a zero */
+static int nb_envoyees[MAX_CONNECTION];
+
 void assertError(int i);
 
 static void
@@ -36,6 +38,7 @@ add_socket(int fd)
   for (i=0; i<MAX_CONNECTION; i++) {
     if (sockets[i] == 0) {
       sockets[i] = fd;
+      nb_envoyees[i] = 0;
       break;
     }
   }
@@ -72,6 +75,7 @@ repeater(int sckt)
 {
     char buf[MAX_BUFFER];
     int nbc, i;
+    int nb_recues = 0;
     const char WELCOME[] = "mtcs : bienvenu\n";
 
     pgrs_in();
@@ -83,10 +87,8 @@ repeater(int sckt)
     while (1) {
         pgrs("attente read");
         nbc = read(sckt, buf, MAX_BUFFER);
-	add_l_recues(&stats, 1);
         if (nbc <= 0) {
             pgrs("fin lecture client");
-
             pgrs("desenregistrement d'une socket");
             del_socket(sckt);
             close(sckt);
@@ -94,10 +96,17 @@ repeater(int sckt)
             return;
         }
         pgrs("boucle ecriture");
+
+	add_l_recues(&stats, 1);
+	nb_recues++;
+	add_l_max_recues(&stats, nb_recues);
+
         for(i=0; i<MAX_CONNECTION; i++)
 	  if (sockets[i]) {
 	    write(sockets[i], buf, nbc);
 	    add_l_envoyees(&stats, 1);
+	    nb_envoyees[i]++;
+	    add_l_max_envoyees(&stats, nb_envoyees[i]);
 	  }
         pgrs("fin boucle ecriture");
     }
